@@ -1,0 +1,24 @@
+pool:
+  name: Hosted Ubuntu 1604
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'Build InfraTools'
+  inputs:
+    projects: '**/InfraTools.csproj'
+    arguments: '--output publish_output --configuration Release'
+
+- task: ArchiveFiles@2
+  displayName: 'Archive binaries for InfraTools'
+  inputs:
+    rootFolderOrFile: 'InfraTools/publish_output/'
+    includeRootFolder: false
+    archiveFile: '$(Build.ArtifactStagingDirectory)/InfraTools.$(Build.BuildId).zip'
+
+- task: CopyFiles@2
+  displayName: 'Copy Files IaC files to: $(Build.ArtifactStagingDirectory)'
+  inputs:
+    SourceFolder: IaC
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'

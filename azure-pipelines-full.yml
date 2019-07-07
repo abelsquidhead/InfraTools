@@ -1,0 +1,64 @@
+name: $(Date:yyyMMdd)$(Rev:.r)
+stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    pool:
+        name: Hosted Ubuntu 1604
+    steps:
+    - task: DotNetCoreCLI@2
+      displayName: 'Build InfraTools'
+      inputs:
+        projects: '**/InfraTools.csproj'
+        arguments: '--output publish_output --configuration Release'
+
+    - task: ArchiveFiles@2
+      displayName: 'Archive binaries for InfraTools'
+      inputs:
+        rootFolderOrFile: 'InfraTools/publish_output/'
+        includeRootFolder: false
+        archiveFile: '$(Build.ArtifactStagingDirectory)/InfraTools.$(Build.BuildId).zip'
+
+    - task: CopyFiles@2
+      displayName: 'Copy Files IaC files to: $(Build.ArtifactStagingDirectory)'
+      inputs:
+        SourceFolder: IaC
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: drop'
+
+- stage: Deploy
+  jobs:
+  - job: DeployEnvironment
+    pool:
+      name: Hosted Ubuntu 1604
+    variables:
+      IaC.Exclusive.infraToolsFunctionName: abelinfratoolsfunction
+      IaC.Exclusive.infraToolsStorageName: abelinfratoolsstorage
+      IaC.Exclusive.resourceGroupName: abelinfratoolsrg
+      IaC.infraToolsFunctionConsumptionPlanRegion: southcentralus
+      IaC.infraToolsFunctionRuntime: dotnet
+      IaC.infraToolsStorageRegion: southcentralus
+      IaC.infraToolsStorageSku: Standard_LRS
+      IaC.resourceGroupRegion: southcentralus
+
+    steps:
+    - download: current
+      artifact: drop
+      patterns: '**/*'
+
+    - task: AzureCLI@1
+      displayName: 'Azure CLI: Deploy infrastructure for Infra Tools'
+      inputs:
+        azureSubscription: 'ca-abewan-demo-test (e97f6c4e-c830-479b-81ad-1aff1dd07470)'
+        scriptPath: '$(Pipeline.Workspace)/drop/provisionInfraTools.bash'
+        addSpnToEnvironment: true
+
+    - task: AzureFunctionApp@1
+      displayName: 'Azure Function App Deploy: infratoolsfunctionbeta'
+      inputs:
+        azureSubscription: 'ca-abewan-demo-test (e97f6c4e-c830-479b-81ad-1aff1dd07470)'
+        appType: functionApp
+        appName: $(IaC.Exclusive.infraToolsFunctionName)
+        package: '$(Pipeline.Workspace)/**/InfraTools*.zip'

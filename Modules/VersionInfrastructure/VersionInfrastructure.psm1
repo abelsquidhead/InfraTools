@@ -1,6 +1,18 @@
 function Update-InfrastructureVersion {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact='Medium')]
-    param()
+    param(
+        [Parameter(Mandatory = $True)]
+        [string]
+        $infraToolsFunctionName,
+
+        [Parameter(Mandatory = $True)]
+        [string]
+        $infraToolsTableName,
+
+        [Parameter(Mandatory = $True)]
+        [string]
+        $deploymentStage
+    )
     Write-Output "Updating version..."
 
     # getting the name of IaC script file
@@ -12,14 +24,9 @@ function Update-InfrastructureVersion {
     $latestVersion = $(getUpFunctionTotal -parentFile $fullScriptName)
     Write-Output "latest version: $latestVersion"
 
-    # grab variables we need from environmental variables
-    $infraToolsFunctionName = $env:IAC_EXCLUSIVE_INFRATOOLSFUNCTIONNAME
-    $infraToolsTableName = $env:IAC_INFRATABLENAME
-    $stage = $env:IAC_DEPLOYMENTSTAGE
-
     # this lets me call Invoke-RestMethod to my azure function by allowing TLS, TLS 1.1 and TLS1.2
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12
-    $currentVersion = $(Invoke-RestMethod "https://$infraToolsFunctionName.azurewebsites.net/api/InfraVersionRetriever?tablename=$infraToolsTableName&stage=$stage&infraname=$sourceFile")
+    $currentVersion = $(Invoke-RestMethod "https://$infraToolsFunctionName.azurewebsites.net/api/InfraVersionRetriever?tablename=$infraToolsTableName&stage=$deploymentStage&infraname=$sourceFile")
     Write-Output "Current version is: $currentVersion"
     if ($currentVersion -eq $latestVersion) {
         Write-Output "Environment is up to date, no change."
@@ -35,7 +42,7 @@ function Update-InfrastructureVersion {
 
         # update infrastructure version by 1
         Write-Output "Registering new version of infrastructure..."
-        $updateResponse = $(Invoke-RestMethod "https://$infraToolsFunctionName.azurewebsites.net/api/InfraVersionUpdater?tablename=$infraToolsTableName&stage=$stage&infraname=$sourceFile")
+        $updateResponse = $(Invoke-RestMethod "https://$infraToolsFunctionName.azurewebsites.net/api/InfraVersionUpdater?tablename=$infraToolsTableName&stage=$deploymentStage&infraname=$sourceFile")
         Write-Output "Done registering new infrastructure version, response: $updateResponse"
         Write-Output ""
     }

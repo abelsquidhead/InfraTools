@@ -37,7 +37,7 @@ There are a lot of benefits to using the Azure CLI for your IaC for simple scena
 
 In fact, if you always completely tear down your infrastructure and redploy completely from scratch, Azure CLI scripts work spectacularily. But where it really craters is if you need to make incremental changes over time. Although some Azure CLI commands are idempotent (most creates are), not all commands are completely idempotent. Which means making changes over time is difficult and messy. You basically start wrapping all of your commands with if statements and pretty quickly, your scripts turn into a colossal mess that is a maintenance nightmare.
 
-This versioning framework makes using the Azure CLI as your IaC simple. When writing your IaC scripts, you would wrap your commands in a bash function. For instance, here is my IaC file which deploys and configures my Azure Front Door instance:
+This versioning framework makes using the Azure CLI as your IaC simple. When writing your IaC scripts, you would wrap your commands in a bash or PowerShell function. For instance, here is my IaC file which deploys and configures my Azure Front Door instance written in bash:
 
 ![](markdowImages/2019-07-02-16-01-09.png)
 
@@ -56,6 +56,12 @@ For instance, if in the above IaC example I wanted to disable front-end https to
 ![](markdowImages/2019-07-02-17-33-30.png)
 
 Just add a 2_Up function and add the code needed to disable front-end https. The infrastructure does all the rest for you. The next time a deployment is run, the framework will automatically go get the current version deployed (1). Will detect that there are 2 Up() functions in this script. And will figure out that it needs to run 2_Up() only. After running the Up functions needed in order (in this case only the 2_Up), it will also update the version table for you.
+
+If you're a Powershell person, you would do almost the same thing. Create your PowerShell script holding your Azure CLI commands wrapped in a 1_Up function. At the end of your script, add the module VersionInfrastructure and then call the exposed function Update-Infrastructure.
+
+Here is an example of a powershell script using the Azure CLI as IaC and using this framework
+
+![](markdowImages/2019-07-09-16-00-14.png)
 
 ### Sounds great! any downsides to using this framework and the Azure CLI IaC?
 Using this framework alongside the Azure CLI sparks joy in me. It actually works really well and does 3 things for me when using the Azure CLI as IaC.
@@ -165,21 +171,20 @@ https://github.com/the-urlist/IaC
 
 ![](markdowImages/2019-07-03-16-03-35.png)
 
-It has all my IaC files as bash scripts. Front Door has an ARM template. This is because there are some things that you just can't set Front Door with the Azure CLI. And conversly, there are some things you can't set with Front Door just using ARM templates. And finally, notice the versionFramework.sh file? Yup, that needs to be right next to my other IaC scripts.
+It has all my IaC files as bash scripts. Front Door has an ARM template. This is because there are some things that you just can't set Front Door with the Azure CLI. And conversly, there are some things you can't set with Front Door just using ARM templates. And finally, notice the versionFramework.sh file? Yup, that needs to be right next to my other IaC scripts. If all of my IaC was written using PowerShell, I wouldn't need this versionFramework.sh file as all that functionality is in the VersionInfrastructure Module in the PowerShell Gallery.
 
 ## To Do
 As it is right now, I think the versioning tool is pretty cool. Super clean IaC scripts using the Azure CLI. Easy to maintain. And super easy to author and use (wrap your commands in a method named 1_Up(), set some pipeline variables and add one extra line of code at the bottom of your script). And easy to debug as well. Much easier than those cryptic error messages from ARM templates :)
 
 But there's still so much coolness that can be added. Here's the next few things that need to be worked on:
 
-- impliment all of this using powershell instead of bash
 - lock/unlock resource group so only the service principla running the scripts can change the resource group
 - impliment rolling back/down functions.
 
-
 ## Links
-- [YAML Pipelines in Azure Pipelines](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=example#download)
-- [Table Storage](https://docs.microsoft.com/en-us/azure/storage/)
-- [Deployment Gates](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/deploy-using-approvals?view=azure-devops)
-- [Azure Pipelines](https://docs.microsoft.com/en-us/azure/devops/pipelines/?view=azure-devops)
-- [Release Variables in Azure Pipelines](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/variables?view=azure-devops&tabs=batch)
+- [YAML Pipelines in Azure Pipelines](https://docs.microsoft.com/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema&WT.mc_id=urlist-blog-abewan)
+- [Table Storage](https://docs.microsoft.com/azure/storage/?WT.mc_id=urlist-blog-abewan)
+- [Deployment Gates](https://docs.microsoft.com/azure/devops/pipelines/release/deploy-using-approvals?view=azure-devops&WT.mc_id=urlist-blog-abewan)
+- [Azure Pipelines](https://docs.microsoft.com/azure/devops/pipelines/?view=azure-devops&WT.mc_id=urlist-blog-abewan)
+- [Release Variables in Azure Pipelines](https://docs.microsoft.com/azure/devops/pipelines/release/variables?view=azure-devops&tabs=batch&WT.mc_id=urlist-blog-abewan)
+- [The Urlist](https://github.com/the-urlist)

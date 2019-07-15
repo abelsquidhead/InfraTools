@@ -34,7 +34,7 @@ stages:
     pool:
       name: Hosted Ubuntu 1604
     variables:
-      IaC.Exclusive.infraToolsFunctionName: infratools-func
+      IaC.Exclusive.infraToolsFunctionName: infratoolsfunc
       IaC.Exclusive.infraToolsStorageName: infratoolsstrg
       IaC.Exclusive.resourceGroupName: infratoolsrg-save
       IaC.infraToolsFunctionConsumptionPlanRegion: southcentralus

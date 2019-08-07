@@ -34,9 +34,9 @@ stages:
     pool:
       name: Hosted Ubuntu 1604
     variables:
-      IaC.Exclusive.infraToolsFunctionName: abelinfratoolsfunction
-      IaC.Exclusive.infraToolsStorageName: abelinfratoolsstorage
-      IaC.Exclusive.resourceGroupName: abelinfratoolsrg
+      IaC.Exclusive.infraToolsFunctionName: infratoolsfunc
+      IaC.Exclusive.infraToolsStorageName: infratoolsstrg
+      IaC.Exclusive.resourceGroupName: infratoolsrg-save
       IaC.infraToolsFunctionConsumptionPlanRegion: southcentralus
       IaC.infraToolsFunctionRuntime: dotnet
       IaC.infraToolsStorageRegion: southcentralus

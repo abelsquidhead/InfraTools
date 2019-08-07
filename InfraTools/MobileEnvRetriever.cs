@@ -12,9 +12,9 @@ using InfraTools.lib;
 
 namespace InfraTools
 {
-    public static class InfraVersionRetriever
+    public static class MobileEnvRetriever
     {
-        [FunctionName("InfraVersionRetriever")]
+        [FunctionName("MobileEnvRetriever")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
@@ -22,20 +22,18 @@ namespace InfraTools
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             // get parameters from either param list of post body
-            string tablename = req.Query["tablename"];
-            string stage = req.Query["stage"];
-            string infraname = req.Query["infraname"];
+            string appName = req.Query["appname"];
+            string buildNumberServiceNameId = req.Query["buildnumberservicenameid"];
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            tablename = tablename ?? data?.tablename;
-            stage = stage ?? data?.name;
-            infraname = infraname ?? data?.infraname;
+            appName = appName ?? data?.appname;
+            buildNumberServiceNameId = buildNumberServiceNameId ?? data?.buildnumberservicenameid;
 
             // error condition
-            if (tablename == null | stage == null | infraname == null)
+            if (appName == null | buildNumberServiceNameId == null)
             {
-                return new BadRequestObjectResult("Please pass a table name, stage and infrastructure name on the query string or in the request body");
+                return new BadRequestObjectResult("Please pass a table name, app name and buildnumberServiceNameId and infrastructure on the query string or in the request body");
             }
 
             // get connection string
@@ -43,11 +41,12 @@ namespace InfraTools
                .AddEnvironmentVariables()
                .Build();
             var connectionString = config.GetConnectionString("myconnectionstring");
-            
+
             // get a reference to the azure table and get the latest version for your stage
-            var tableMgr = new VersionTableManager(tablename, connectionString);
-            var versionInfo = await tableMgr.GetInfraVersionAsync(stage, infraname);
-            return new OkObjectResult(versionInfo.Version);
+            var tableMgr = new MobileTableManager("MobileServiceEnv", connectionString);
+            var mobileVersionInfo = await tableMgr.GetMobileVersionAsync(appName, buildNumberServiceNameId);
+
+            return new OkObjectResult(mobileVersionInfo);
         }
     }
 }

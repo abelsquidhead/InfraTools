@@ -12,31 +12,31 @@ using InfraTools.lib;
 
 namespace InfraTools
 {
-    public static class InfraVersionUpdater
+    public static class MobileEnvSaver
     {
-        [FunctionName("InfraVersionUpdater")]
+        [FunctionName("MobileEnvSaver")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
             // get parameters from either param list of post body
-            string tablename = req.Query["tablename"];
-            string stage = req.Query["stage"];
-            string infraname = req.Query["infraname"];
+            string appName = req.Query["appname"];
+            string buildNumberServiceNameId = req.Query["buildnumberservicenameid"];
+            string environment = req.Query["environment"];
+            string url = req.Query["url"];
 
             // look at post body
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            tablename = tablename ?? data?.tablename;
-            stage = stage ?? data?.name;
-            infraname = infraname ?? data?.infraname;
+            appName = appName ?? data?.appname;
+            buildNumberServiceNameId = buildNumberServiceNameId ?? data?.buildnumberservicenameid;
+            environment = environment ?? data?.environment;
+            url = url ?? data?.url;
 
             // error condition
-            if (tablename == null | stage == null | infraname == null)
+            if (appName == null | buildNumberServiceNameId == null)
             {
-                return new BadRequestObjectResult("Please pass a table name, stage and infrastructure name on the query string or in the request body");
+                return new BadRequestObjectResult("Please pass an app name, build number service name id, environment and url on the query string or in the request body");
             }
 
             // get connection string
@@ -46,8 +46,8 @@ namespace InfraTools
             var connectionString = config.GetConnectionString("myconnectionstring");
 
             // get a reference to the azure table and get the latest version for your stage
-            var tableMgr = new VersionTableManager(tablename, connectionString);
-            await tableMgr.AddInfraVersionAsync(stage, infraname);
+            var tableMgr = new MobileTableManager("MobileServiceEnv", connectionString);
+            await tableMgr.AddMobileVersionAsync(appName, buildNumberServiceNameId, environment, url);
 
             return new OkObjectResult("ok");
         }

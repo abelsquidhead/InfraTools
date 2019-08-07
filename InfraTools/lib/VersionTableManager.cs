@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace InfraTools.lib
 {
-    public class TableManager
+    public class VersionTableManager
     {
         // private property  
         private CloudTable _table;
 
         // Constructor   
-        public TableManager(string _CloudTableName, string connectionString)
+        public VersionTableManager(string _CloudTableName, string connectionString)
         {
             if (string.IsNullOrEmpty(_CloudTableName))
             {

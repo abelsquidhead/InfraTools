@@ -61,6 +61,9 @@ namespace InfraTools.lib
                 };
             }
 
+            serviceObj.EnvironmentName = environment;
+            serviceObj.Url = url;
+
             var insertOperation = TableOperation.InsertOrMerge(serviceObj);
             await _table.ExecuteAsync(insertOperation);
 

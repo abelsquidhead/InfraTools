@@ -44,7 +44,7 @@ namespace InfraTools
                 .AddEnvironmentVariables()
                 .Build();
             var connectionString = config.GetConnectionString("myconnectionstring");
-
+            
             // get a reference to the azure table and get the latest version for your stage
             var tableMgr = new MobileTableManager("MobileServiceEnv", connectionString);
             await tableMgr.AddMobileVersionAsync(appName, buildNumberServiceNameId, environment, url);

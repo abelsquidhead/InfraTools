@@ -38,7 +38,7 @@ function Update-InfrastructureVersion {
     
     if ($currentVersion -eq $latestVersion) {
         Write-Output "Environment is up to date, no change."
-        $couldNotReachInfraTools = true;
+        $couldNotReachInfraTools = $true;
     }
     Write-Output ""
     # call all the Up functions needed to get to the latest version

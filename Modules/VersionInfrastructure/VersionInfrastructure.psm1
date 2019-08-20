@@ -24,10 +24,17 @@ function Update-InfrastructureVersion {
     $latestVersion = $(getUpFunctionTotal -parentFile $fullScriptName)
     Write-Output "latest version: $latestVersion"
 
-    # this lets me call Invoke-RestMethod to my azure function by allowing TLS, TLS 1.1 and TLS1.2
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12
-    $currentVersion = $(Invoke-RestMethod "https://$infraToolsFunctionName.azurewebsites.net/api/InfraVersionRetriever?tablename=$infraToolsTableName&stage=$deploymentStage&infraname=$sourceFile")
-    Write-Output "Current version is: $currentVersion"
+    $currentVersion = 0
+    try {
+        # this lets me call Invoke-RestMethod to my azure function by allowing TLS, TLS 1.1 and TLS1.2
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12
+        $currentVersion = $(Invoke-RestMethod "https://$infraToolsFunctionName.azurewebsites.net/api/InfraVersionRetriever?tablename=$infraToolsTableName&stage=$deploymentStage&infraname=$sourceFile")
+        Write-Output "Current version is: $currentVersion"
+    }
+    catch {
+        Write-Output "Could not reach infra tools function. Set current version to: $currentVersion"
+    }
+    
     if ($currentVersion -eq $latestVersion) {
         Write-Output "Environment is up to date, no change."
     }

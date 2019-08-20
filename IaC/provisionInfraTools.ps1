@@ -70,9 +70,7 @@ Write-Output ""
 #endregion #####################################################################
 
 
-# This creates the resources for infra tools. Resource group, storage and function
-#
-function 1_Up {
+
     #region Create resource group ##################################################
 
     # This creates the resource group 
@@ -142,10 +140,3 @@ function 1_Up {
     Write-Output "Done setting connection string"
     Write-Output ""
     #endregion #####################################################################
-}
-
-Install-Module -Name VersionInfrastructure -Force -Scope CurrentUser
-Update-InfrastructureVersion `
-    -infraToolsFunctionName $Env:INFRATOOLS_FUNCTIONNAME `
-    -infraToolsTableName $Env:INFRATOOLS_TABLENAME `
-    -deploymentStage $Env:INFRATOOLS_DEPLOYMENTSTAGE

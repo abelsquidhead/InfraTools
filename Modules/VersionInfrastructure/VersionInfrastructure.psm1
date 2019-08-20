@@ -25,6 +25,7 @@ function Update-InfrastructureVersion {
     Write-Output "latest version: $latestVersion"
 
     $currentVersion = 0
+    $couldNotReachInfraTools = $false
     try {
         # this lets me call Invoke-RestMethod to my azure function by allowing TLS, TLS 1.1 and TLS1.2
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls12
@@ -37,6 +38,7 @@ function Update-InfrastructureVersion {
     
     if ($currentVersion -eq $latestVersion) {
         Write-Output "Environment is up to date, no change."
+        $couldNotReachInfraTools = true;
     }
     Write-Output ""
     # call all the Up functions needed to get to the latest version
@@ -49,7 +51,17 @@ function Update-InfrastructureVersion {
 
         # update infrastructure version by 1
         Write-Output "Registering new version of infrastructure..."
-        $updateResponse = $(Invoke-RestMethod "https://$infraToolsFunctionName.azurewebsites.net/api/InfraVersionUpdater?tablename=$infraToolsTableName&stage=$deploymentStage&infraname=$sourceFile")
+        try {
+            $updateResponse = $(Invoke-RestMethod "https://$infraToolsFunctionName.azurewebsites.net/api/InfraVersionUpdater?tablename=$infraToolsTableName&stage=$deploymentStage&infraname=$sourceFile")
+        }
+        catch {
+            if ($couldNotReachInfraTools -eq $true) {
+                Write-Output "Could not reach infra tools, not updating version"
+            }
+            else {
+                Write-Error "Could not reach infra tools: $PSItem"
+            }
+        }
         Write-Output "Done registering new infrastructure version, response: $updateResponse"
         Write-Output ""
     }
